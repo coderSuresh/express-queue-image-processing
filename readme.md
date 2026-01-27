@@ -48,5 +48,4 @@ Small program to see queue in action. I created this program to see how can we d
 ## Project Structure
 
 - `src/queue/` - BullMQ queue and worker setup
-- `src/middleware/` - Image upload middleware using multer 
-
+- `src/middleware/` - Image upload middleware using multer
