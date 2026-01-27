@@ -2,7 +2,6 @@ import express from 'express';
 import 'dotenv/config';
 import cors from 'cors';
 import helmet from 'helmet';
-import { createUploader } from './middleware/upload.middleware.js';
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -36,21 +35,16 @@ app.use(cors(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-const upload = createUploader('images');
-
-app.post('/upload', upload.single('image'), (req, res) => {
-    if (!req.file) {
-        return res.status(400).json({ error: 'No file uploaded' });
-    }
-    res.json({ message: 'File uploaded successfully', file: req.file });
-});
-
 app.use('/uploads', express.static('uploads'));
 
 app.get('/', (req, res) => {
     const data = { message: 'Welcome to the Express server!' };
     res.json(data);
 });
+
+import uploadRoute from './src/routes/image.route.js';
+
+app.use('/api/v1/upload', uploadRoute);
 
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
