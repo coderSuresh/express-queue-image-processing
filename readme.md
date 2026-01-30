@@ -10,33 +10,29 @@ Small program to see queue in action. I created this program to see how can we d
 
 ## Getting Started
 
-1. **Install dependencies:**
+### Using Docker
+
+1. **Build the Docker image:**
 
     ```bash
-    npm install
+    docker build -t image-api .
     ```
 
-2. **Start Redis:**  
-    Make sure you have a Redis server running locally or update the configuration to point to your Redis instance.
-    `image.queue.js` and `image.worker.js`
+2. **Start all services with Docker Compose:**
 
     ```bash
-        connection: {
-            host: "localhost",
-            port: 6379,
-        },
+    docker-compose up
     ```
 
-3. **Run the application:**
+    This will start:
+    - API server (port 8000)
+    - Background worker
+    - Redis server
+
+3. **Stop services:**
 
     ```bash
-    npm run dev
-    ```
-
-    and
-
-    ```bash
-    npm run worker
+    docker-compose down
     ```
 
 ## Usage
