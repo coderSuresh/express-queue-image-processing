@@ -22,3 +22,8 @@ services:
   redis:
     image: redis:latest
     container_name: redis
+    volumes:
+      - redis-data:/data
+
+  volumes:
+    redis-data:
