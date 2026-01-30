@@ -6,10 +6,10 @@ const pushToQueue = async (req, res) => {
             return res.status(400).json({ error: 'No file uploaded' });
         }
       
-        const imagePath = req.file.path;
-        await addImageToQueue(imagePath);
+        const imageName = req.file.filename;
+        await addImageToQueue(`images/${imageName}`);
 
-        res.status(200).json({ message: 'Image uploaded and processing started', imagePath });
+        res.status(200).json({ message: 'Image uploaded and processing started', path: `images/${imageName}` });
 
     } catch (error) {
         console.error('Error uploading image:', error);

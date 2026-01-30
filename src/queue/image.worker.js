@@ -20,6 +20,13 @@ const connection = new IORedis(REDIS_URL, {
     maxRetriesPerRequest: null,
 });
 
+const BASEDIR = process.cwd();
+const UPLOADS_DIR = path.join(BASEDIR, 'uploads');
+const CONVERTED_DIR = path.join(UPLOADS_DIR, 'converted');
+
+ensureDir(UPLOADS_DIR);
+ensureDir(CONVERTED_DIR);
+
 // Image processing configurations
 const IMAGE_VERSIONS = [
     { name: 'thumbnail', width: 150, quality: 60 },
@@ -33,27 +40,24 @@ const worker = new Worker("image-processing", async (job) => {
     if (job.name === "process-image") {
         const { imagePath } = job.data;
 
+        const inputPath = path.join(UPLOADS_DIR, imagePath);
+
         // Check if file exists
-        if (!fs.existsSync(imagePath)) {
-            return { error: "File not found", imagePath };
+        if (!fs.existsSync(inputPath)) {
+            throw new Error(`File not found: ${inputPath}`);
         }
 
-        // Extract filename without extension
-        const parsedPath = path.parse(imagePath);
-        const baseFilename = parsedPath.name;
-
-        // Create organized folder structure: uploads/converted/{filename}/
-        const outputBaseDir = path.join('uploads', 'converted', baseFilename);
+        const baseName = path.parse(imagePath).name;
+        const outputBaseDir = path.join(CONVERTED_DIR, baseName);
         ensureDir(outputBaseDir);
 
         const processedImages = {};
-        const metadata = await sharp(imagePath).metadata();
-
+        const metadata = await sharp(inputPath).metadata();
         // Process each version
         for (const version of IMAGE_VERSIONS) {
             const outputPath = path.join(outputBaseDir, `${version.name}.webp`);
 
-            let sharpInstance = sharp(imagePath);
+            let sharpInstance = sharp(inputPath);
 
             // Resize maintaining aspect ratio
             if (version.width && version.width < metadata.width) {
@@ -76,7 +80,7 @@ const worker = new Worker("image-processing", async (job) => {
         }
 
         return {
-            originalPath: imagePath,
+            originalPath: inputPath,
             baseFolder: outputBaseDir,
             versions: processedImages,
             totalVersions: IMAGE_VERSIONS.length
