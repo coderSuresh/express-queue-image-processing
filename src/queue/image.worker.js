@@ -2,12 +2,23 @@ import { Queue, Worker } from "bullmq";
 import sharp from "sharp";
 import fs from "fs";
 import path from "path";
+import IORedis from "ioredis";
 
 const ensureDir = (dir) => {
     if (!fs.existsSync(dir)) {
         fs.mkdirSync(dir, { recursive: true });
     }
 }
+
+const REDIS_URL = process.env.REDIS_URL;
+
+if(!REDIS_URL) {
+    throw new Error("REDIS_URL is not defined in environment variables");
+}
+
+const connection = new IORedis(REDIS_URL, {
+    maxRetriesPerRequest: null,
+});
 
 // Image processing configurations
 const IMAGE_VERSIONS = [
@@ -74,10 +85,7 @@ const worker = new Worker("image-processing", async (job) => {
         throw new Error(`Unknown job name: ${job.name}`);
     }
 }, {
-    connection: {
-        host: "localhost",
-        port: 6379,
-    }
+    connection
 });
 
 worker.on("completed", (job, returnvalue) => {
@@ -85,15 +93,12 @@ worker.on("completed", (job, returnvalue) => {
 });
 
 const dlq = new Queue('image-processing-dlq', {
-    connection: {
-        host: "localhost",
-        port: 6379,
-    }
+    connection
 });
 
 worker.on("failed", (job, err) => {
 
-    if(job.attemptsMade >= job.opts.attempts) {
+    if (job.attemptsMade >= job.opts.attempts) {
         dlq.add('failed-job', {
             originalJobId: job.id,
             name: job.name,

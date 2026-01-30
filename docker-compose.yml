@@ -1,0 +1,24 @@
+services:
+  api:
+    image: image-api
+    container_name: image-api
+    command: node index.js
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  worker:
+    image: image-api
+    container_name: image-worker
+    command: node /app/src/queue/image.worker.js
+    env_file:
+      - .env
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    container_name: redis
